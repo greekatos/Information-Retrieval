@@ -1,12 +1,10 @@
 from tkinter import *
-from tkinter import simpledialog
 import tkinter.messagebox as MessageBox
 from elasticsearch import Elasticsearch
 import pandas as pd
 import numpy as np
 import math
-from operator import itemgetter
-import json
+
 
 
 def submit_value():
@@ -48,13 +46,13 @@ def submit_value():
                 data_set['score'].append(result['hits']['hits'][i]['_score'])#it appends the book_titles of the hits
                 data_set['isbn'].append(result['hits']['hits'][i]['_source']['isbn'])#it appends the book_titles of the hits
 
-                # print(data_set['isbn'][i])
                 elastic_query_ratings = {
                     "query_string": {
                         "query": data_set['isbn'][i],
                         "default_field": "isbn"
                     }
                 }
+                
                 isbn_result = es_conn.search(index="rratings", query=elastic_query_ratings,size=9999)#If the size is more than 9999 it will appear the first 9999 results. If we need more, we need to do sth else.
 
                 for j in range(len(isbn_result['hits']['hits'])):
@@ -76,29 +74,22 @@ def submit_value():
                     Average.pop()
                 data_set['new_metric'].append(np.mean(Average))
 
-
-            # a = sorted(data_set.items(), key=lambda x: x[1]['new_metric'])
-            # print(a)
             df = pd.DataFrame.from_dict(data_set)
-            print(df)
             df = df.sort_values('new_metric', ascending=False)
             print(df)
+            
+            
+            # This code is not needed
             final_matrix = [data_set['new_metric'], data_set['isbn'], data_set['book_title']]
-
             final_matrix = np.transpose(np.array(final_matrix))
+            
             # print(final_matrix)
-
-
-
-
-
-
             # MessageBox.showinfo("Execution Status","Query successfully executed")
 
+            
 
 HOST_URLS = ["http://127.0.0.1:9200"]
 es_conn = Elasticsearch(HOST_URLS)
-
 
 root = Tk()
 root.geometry("500x500")
@@ -107,7 +98,6 @@ book_title_text = Label(root, text="Book Title:")
 user_text = Label(root, text="User Id:")
 book_title_text.place(x=15, y=70)
 user_text.place(x=15, y=140)
-
 
 book_title_box = Entry()#Entry it will create a box that the user can write'''textvariable=book_title_value, width = "30"'''
 user_box = Entry()#'''textvariable=user_value, width = "30"'''
@@ -118,5 +108,3 @@ register = Button(root, text="Submit", width = "30",height="2", command=submit_v
 register.place(x=15,y=290)
 
 root.mainloop()
-
-
